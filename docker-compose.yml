@@ -1,0 +1,42 @@
+services:
+  bot:
+    build:
+      context: .
+    container_name: everithing_manager_bot
+    env_file:
+      - .env
+    restart: on-failure
+    depends_on:
+      - redis
+    volumes:
+      - ./app:/app/app:ro
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - /opt/everithing_manager/config/oracle-wallet:/opt/everithing_manager/config/oracle-wallet:ro
+
+  dashboard:
+    build:
+      context: .
+    container_name: everithing_manager_dashboard
+    env_file:
+      - .env
+    restart: on-failure
+    depends_on:
+      - redis
+    command: ["uvicorn", "app.web:app", "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      - "127.0.0.1:8080:8000"
+    volumes:
+      - ./app:/app/app:ro
+      - ./data:/app/data
+      - /opt/everithing_manager/config/oracle-wallet:/opt/everithing_manager/config/oracle-wallet:ro
+
+  redis:
+    image: redis:7-alpine
+    container_name: everithing_manager_redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+
+volumes:
+  redis_data:
